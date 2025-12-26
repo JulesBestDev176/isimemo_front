@@ -1,0 +1,56 @@
+### Test Health Check
+GET http://localhost:3001/api/chatbot/health
+
+###
+
+### Test Search Memoires
+POST http://localhost:3001/api/chatbot/search-memoires
+Content-Type: application/json
+
+{
+  "query": "intelligence artificielle éducation",
+  "limit": 3
+}
+
+###
+
+### Test Chatbot Ask
+POST http://localhost:3001/api/chatbot/ask
+Content-Type: application/json
+
+{
+  "question": "Quelles sont les applications de l'intelligence artificielle dans l'éducation?",
+  "nbMemoires": 2
+}
+
+###
+
+### Test Simple Question
+POST http://localhost:3001/api/chatbot/simple
+Content-Type: application/json
+
+{
+  "message": "Bonjour! Peux-tu te présenter en une phrase?"
+}
+
+###
+
+### Test avec question sur blockchain
+POST http://localhost:3001/api/chatbot/ask
+Content-Type: application/json
+
+{
+  "question": "Comment la blockchain peut-elle être utilisée pour sécuriser les diplômes?",
+  "nbMemoires": 3
+}
+
+###
+
+### Test avec question sur mobile learning
+POST http://localhost:3001/api/chatbot/ask
+Content-Type: application/json
+
+{
+  "question": "Quelles sont les bonnes pratiques pour développer des applications mobiles éducatives?",
+  "nbMemoires": 2
+}

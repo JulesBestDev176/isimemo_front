@@ -1,0 +1,17 @@
+// Ajouter après l'endpoint /api/demandes/:id/taches
+
+// GET - Récupérer les tâches d'un dossier spécifique (pour EspaceTravail candidat)
+app.get('/api/dossiers/:id/taches', async (req, res) => {
+  try {
+    const dossierId = parseInt(req.params.id);
+    
+    // Récupérer toutes les tâches liées à ce dossier
+    const taches = await Tache.find({ dossierId }).sort({ ordre: 1 });
+    
+    console.log(`📋 Tâches pour dossier ${dossierId}:`, taches.length);
+    res.json(taches);
+  } catch (error) {
+    console.error('Erreur récupération tâches dossier:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});

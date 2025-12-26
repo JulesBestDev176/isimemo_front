@@ -1,0 +1,413 @@
+{
+  "etudiants": [
+    {
+      "id": "ETU001",
+      "nom": "Ndiaye",
+      "prenom": "Abdou Fatah",
+      "email": "abdoufatahndiayeisidk@groupeisi.com",
+      "telephone": "+221 77 123 45 01",
+      "niveau": "L3",
+      "departement": "Génie Informatique",
+      "filiere": "Génie Logiciel"
+    },
+    {
+      "id": "ETU002",
+      "nom": "Diallo",
+      "prenom": "Al Hassane",
+      "email": "alhassanedialloisidk@groupeisi.com",
+      "telephone": "+221 77 123 45 02",
+      "niveau": "L3",
+      "departement": "Génie Informatique",
+      "filiere": "Génie Logiciel"
+    },
+    {
+      "id": "ETU003",
+      "nom": "Fall",
+      "prenom": "Souleymane",
+      "email": "souleymanefallisidk@groupeisi.com",
+      "telephone": "+221 77 715 10 61",
+      "niveau": "L3",
+      "departement": "Génie Informatique",
+      "filiere": "Génie Logiciel"
+    },
+    {
+      "id": "ETU004",
+      "nom": "Ndour",
+      "prenom": "Aliou",
+      "email": "alioundourisidk@groupeisi.com",
+      "telephone": "+221 76 561 68 68",
+      "niveau": "L3",
+      "departement": "Génie Informatique",
+      "filiere": "Génie Logiciel"
+    },
+    {
+      "id": "ETU005",
+      "nom": "Bocoum",
+      "prenom": "Ibrahima Amadou",
+      "email": "ibrahimaamadoubocoumisidk@groupeisi.com",
+      "telephone": "+221 77 123 45 05",
+      "niveau": "L3",
+      "departement": "Génie Informatique",
+      "filiere": "Génie Logiciel"
+    },
+    {
+      "id": "ETU006",
+      "nom": "Diallo",
+      "prenom": "Houleymatou",
+      "email": "houleymatoudialloisidk@groupeisi.com",
+      "telephone": "+221 77 123 45 06",
+      "niveau": "L3",
+      "departement": "Génie Informatique",
+      "filiere": "Génie Logiciel"
+    },
+    {
+      "id": "ETU007",
+      "nom": "Traore",
+      "prenom": "Cheikh Tidiane",
+      "email": "cheikhtidianetraoreisidk@groupeisi.com",
+      "telephone": "+221 77 123 45 07",
+      "niveau": "L3",
+      "departement": "Génie Informatique",
+      "filiere": "Génie Logiciel"
+    },
+    {
+      "id": "ETU008",
+      "nom": "Thiam",
+      "prenom": "Awa",
+      "email": "awathiamisidk@groupeisi.com",
+      "telephone": "+221 77 123 45 08",
+      "niveau": "L3",
+      "departement": "Génie Informatique",
+      "filiere": "Génie Logiciel"
+    },
+    {
+      "id": "ETU009",
+      "nom": "Diallo",
+      "prenom": "Bassine",
+      "email": "bassinedialloisidk@groupeisi.com",
+      "telephone": "+221 77 123 45 09",
+      "niveau": "L3",
+      "departement": "Génie Informatique",
+      "filiere": "Génie Logiciel"
+    },
+    {
+      "id": "ETU010",
+      "nom": "Sakho",
+      "prenom": "Mama Aichatou",
+      "email": "mamaaichatousakhoisidk@groupeisi.com",
+      "telephone": "+221 77 123 45 10",
+      "niveau": "L3",
+      "departement": "Génie Informatique",
+      "filiere": "Génie Logiciel"
+    },
+    {
+      "id": "ETU020",
+      "nom": "Ba",
+      "prenom": "Mamadou",
+      "email": "mamadoubaisidk@groupeisi.com",
+      "telephone": "+221 77 222 00 01",
+      "niveau": "L2",
+      "departement": "Génie Informatique",
+      "filiere": "Développement Web"
+    },
+    {
+      "id": "ETU021",
+      "nom": "Sy",
+      "prenom": "Fatou",
+      "email": "fatousyisidk@groupeisi.com",
+      "telephone": "+221 77 222 00 02",
+      "niveau": "L1",
+      "departement": "Génie Civil",
+      "filiere": "BTP"
+    }
+  ],
+  "candidats": [
+    {
+      "id": "CAND001",
+      "etudiantId": "ETU003",
+      "nom": "Fall",
+      "prenom": "Souleymane",
+      "email": "souleymanefallisidk@groupeisi.com",
+      "telephone": "+221 77 715 10 61",
+      "motDePasse": "P@sser123",
+      "dateInscription": "2025-12-25",
+      "mustChangePassword": false
+    }
+  ],
+  "dossiers": [
+    {
+      "id": 1,
+      "titre": "dossier 1",
+      "description": "Dossier en cours de création",
+      "statut": "EN_COURS",
+      "etape": "CHOIX_SUJET",
+      "dateCreation": "2025-12-25",
+      "dateModification": "2025-12-25",
+      "anneeAcademique": "2025-2026",
+      "candidatIds": [
+        "CAND001"
+      ],
+      "progression": 0
+    }
+  ],
+  "demandes": [],
+  "demandesEncadrement": [],
+  "encadrants": [
+    {
+      "id": 1,
+      "nom": "Diop",
+      "prenom": "Moussa",
+      "email": "moussa.diop@isi.edu.sn",
+      "grade": "Professeur",
+      "departement": "Génie Informatique",
+      "specialite": "Intelligence Artificielle",
+      "estDisponible": true,
+      "capaciteEncadrement": 5,
+      "nombreEncadrementsActuels": 0
+    },
+    {
+      "id": 2,
+      "nom": "Ndiaye",
+      "prenom": "Fatou",
+      "email": "fatou.ndiaye@isi.edu.sn",
+      "grade": "Maître de conférences",
+      "departement": "Génie Informatique",
+      "specialite": "Développement Web",
+      "estDisponible": true,
+      "capaciteEncadrement": 4,
+      "nombreEncadrementsActuels": 0
+    },
+    {
+      "id": 3,
+      "nom": "Sow",
+      "prenom": "Abdoulaye",
+      "email": "abdoulaye.sow@isi.edu.sn",
+      "grade": "Professeur",
+      "departement": "Génie Informatique",
+      "specialite": "Bases de données",
+      "estDisponible": true,
+      "capaciteEncadrement": 5,
+      "nombreEncadrementsActuels": 0
+    },
+    {
+      "id": 4,
+      "nom": "Ba",
+      "prenom": "Mariama",
+      "email": "mariama.ba@isi.edu.sn",
+      "grade": "Maître de conférences",
+      "departement": "Génie Informatique",
+      "specialite": "Sécurité informatique",
+      "estDisponible": true,
+      "capaciteEncadrement": 4,
+      "nombreEncadrementsActuels": 0
+    },
+    {
+      "id": 5,
+      "nom": "Faye",
+      "prenom": "Ousmane",
+      "email": "ousmane.faye@isi.edu.sn",
+      "grade": "Professeur",
+      "departement": "Génie Informatique",
+      "specialite": "Machine Learning",
+      "estDisponible": true,
+      "capaciteEncadrement": 5,
+      "nombreEncadrementsActuels": 0
+    },
+    {
+      "id": 6,
+      "nom": "Gueye",
+      "prenom": "Aissatou",
+      "email": "aissatou.gueye@isi.edu.sn",
+      "grade": "Maître assistant",
+      "departement": "Génie Informatique",
+      "specialite": "Réseaux",
+      "estDisponible": true,
+      "capaciteEncadrement": 3,
+      "nombreEncadrementsActuels": 0
+    }
+  ],
+  "sujets": [
+    {
+      "id": 1,
+      "titre": "Système de recommandation IA",
+      "description": "Développer un système de recommandation basé sur l'apprentissage automatique",
+      "motsCles": [
+        "IA",
+        "ML",
+        "Recommandation"
+      ],
+      "encadrantId": 1,
+      "niveau": "L3",
+      "statut": "approuve",
+      "disponible": true,
+      "nombreMaxEtudiants": 2,
+      "nombreEtudiantsActuels": 0
+    },
+    {
+      "id": 2,
+      "titre": "Application mobile de santé",
+      "description": "Création d'une application mobile de suivi médical",
+      "motsCles": [
+        "Mobile",
+        "Santé",
+        "IoT"
+      ],
+      "encadrantId": 2,
+      "niveau": "L3",
+      "statut": "approuve",
+      "disponible": true,
+      "nombreMaxEtudiants": 2,
+      "nombreEtudiantsActuels": 0
+    },
+    {
+      "id": 3,
+      "titre": "Plateforme de gestion des mémoires",
+      "description": "Développement d'une plateforme de gestion des mémoires pour l'ISI",
+      "motsCles": [
+        "Web",
+        "Gestion",
+        "Académique"
+      ],
+      "encadrantId": 3,
+      "niveau": "L3",
+      "statut": "approuve",
+      "disponible": true,
+      "nombreMaxEtudiants": 2,
+      "nombreEtudiantsActuels": 0
+    },
+    {
+      "id": 4,
+      "titre": "Système de détection de fraude",
+      "description": "Application de détection de fraude bancaire",
+      "motsCles": [
+        "Sécurité",
+        "Deep Learning",
+        "Finance"
+      ],
+      "encadrantId": 4,
+      "niveau": "L3",
+      "statut": "approuve",
+      "disponible": true,
+      "nombreMaxEtudiants": 2,
+      "nombreEtudiantsActuels": 0
+    },
+    {
+      "id": 5,
+      "titre": "Chatbot intelligent",
+      "description": "Développement d'un chatbot basé sur l'IA conversationnelle",
+      "motsCles": [
+        "NLP",
+        "Chatbot",
+        "IA"
+      ],
+      "encadrantId": 5,
+      "niveau": "L3",
+      "statut": "approuve",
+      "disponible": true,
+      "nombreMaxEtudiants": 2,
+      "nombreEtudiantsActuels": 0
+    },
+    {
+      "id": 6,
+      "titre": "Système de monitoring réseau",
+      "description": "Application de surveillance du trafic réseau",
+      "motsCles": [
+        "Réseaux",
+        "Monitoring",
+        "Sécurité"
+      ],
+      "encadrantId": 6,
+      "niveau": "L3",
+      "statut": "approuve",
+      "disponible": true,
+      "nombreMaxEtudiants": 2,
+      "nombreEtudiantsActuels": 0
+    }
+  ],
+  "documents": [],
+  "messages": [],
+  "tickets": [],
+  "notifications": [],
+  "memoires": [],
+  "sessions": [
+    {
+      "id": 1,
+      "nom": "Session Juin 2026",
+      "typeSession": "JUIN",
+      "anneeAcademique": "2025-2026",
+      "dateDebut": "2026-06-01",
+      "dateFin": "2026-06-30",
+      "statut": "PLANIFIEE",
+      "dateCreation": "2025-12-01"
+    }
+  ],
+  "salles": [
+    {
+      "id": 1,
+      "nom": "Amphi A",
+      "batiment": "Bâtiment Principal",
+      "capacite": 200,
+      "estDisponible": true
+    },
+    {
+      "id": 2,
+      "nom": "Salle 101",
+      "batiment": "Bâtiment Informatique",
+      "capacite": 30,
+      "estDisponible": true
+    },
+    {
+      "id": 3,
+      "nom": "Salle 102",
+      "batiment": "Bâtiment Informatique",
+      "capacite": 30,
+      "estDisponible": true
+    },
+    {
+      "id": 4,
+      "nom": "Salle de soutenance",
+      "batiment": "Bâtiment Principal",
+      "capacite": 20,
+      "estDisponible": true
+    }
+  ],
+  "users": [
+    {
+      "id": "ADMIN001",
+      "email": "admin@isi.edu.sn",
+      "password": "admin123",
+      "nom": "Admin",
+      "prenom": "System",
+      "role": "ADMIN"
+    },
+    {
+      "id": "PROF001",
+      "email": "moussa.diop@isi.edu.sn",
+      "password": "prof123",
+      "nom": "Diop",
+      "prenom": "Moussa",
+      "role": "PROFESSEUR",
+      "encadrantId": 1
+    },
+    {
+      "id": "PROF002",
+      "email": "fatou.ndiaye@isi.edu.sn",
+      "password": "prof123",
+      "nom": "Ndiaye",
+      "prenom": "Fatou",
+      "role": "PROFESSEUR",
+      "encadrantId": 2
+    }
+  ],
+  "nextIds": {
+    "candidat": 2,
+    "dossier": 2,
+    "demande": 1,
+    "demandeEncadrement": 1,
+    "sujet": 7,
+    "document": 1,
+    "message": 1,
+    "ticket": 1,
+    "notification": 1
+  }
+}
