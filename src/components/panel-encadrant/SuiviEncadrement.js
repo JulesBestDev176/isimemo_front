@@ -1,0 +1,104 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState, useEffect } from 'react';
+import { CheckCircle, Calendar, Clock, MapPin, Users, FileText, Plus, Video } from 'lucide-react';
+import { Card, CardContent } from '../ui/card';
+import { Button } from '../ui/button';
+import { dossierService } from '../../services/dossier.service';
+export const SuiviEncadrement = ({ encadrantId, anneeAcademique, etudiants }) => {
+    const [reunions, setReunions] = useState([]);
+    const [loading, setLoading] = useState(false);
+    // États pour l'ajout en masse
+    const [selectedEtudiants, setSelectedEtudiants] = useState([]); // dossierIds
+    const [noteContenu, setNoteContenu] = useState('');
+    const [noteType, setNoteType] = useState('AUTRE');
+    const [dateAction, setDateAction] = useState(new Date().toISOString().split('T')[0]);
+    const [bulkSuccess, setBulkSuccess] = useState(null);
+    useEffect(() => {
+        fetchReunions();
+    }, [encadrantId, anneeAcademique]);
+    const fetchReunions = () => __awaiter(void 0, void 0, void 0, function* () {
+        setLoading(true);
+        try {
+            const data = yield dossierService.getReunionsEncadrant(encadrantId, anneeAcademique);
+            setReunions(data);
+        }
+        catch (error) {
+            console.error('Erreur chargement réunions:', error);
+        }
+        finally {
+            setLoading(false);
+        }
+    });
+    const handleValiderReunion = (messageId, dossierId, titre) => __awaiter(void 0, void 0, void 0, function* () {
+        if (!dossierId) {
+            // Cas où la réunion n'est pas liée à un dossier spécifique (rare mais possible)
+            // Ou si on veut laisser choisir le dossier. Pour l'instant on suppose que le message a le bon contexte si il vient d'un canal dossier.
+            // S'il vient d'un message global, c'est plus complexe. 
+            // Simplification: On ne traite ici que les messages qui ont un dossier ou on demande à l'encadrant de le lier si manquant (TODO).
+            alert("Impossible de lier automatiquement à un dossier.");
+            return;
+        }
+        try {
+            yield dossierService.validerReunionCommeNote(messageId, dossierId, encadrantId, `Réunion : ${titre}`);
+            // Mettre à jour la liste (retirer la réunion validée ou la marquer)
+            // Pour l'instant on recharge simplement
+            alert("Réunion validée et ajoutée aux notes de suivi !");
+            fetchReunions();
+        }
+        catch (error) {
+            console.error('Erreur validation réunion:', error);
+            alert("Erreur lors de la validation.");
+        }
+    });
+    const handleSelectAll = () => {
+        if (selectedEtudiants.length === etudiants.length) {
+            setSelectedEtudiants([]);
+        }
+        else {
+            setSelectedEtudiants(etudiants.map(e => e.dossierId));
+        }
+    };
+    const handleBulkSubmit = (e) => __awaiter(void 0, void 0, void 0, function* () {
+        e.preventDefault();
+        if (selectedEtudiants.length === 0 || !noteContenu.trim())
+            return;
+        try {
+            yield dossierService.createNoteSuiviBulk(selectedEtudiants, encadrantId, noteContenu, noteType);
+            setBulkSuccess(`Note ajoutée avec succès pour ${selectedEtudiants.length} dossier(s).`);
+            setNoteContenu('');
+            setSelectedEtudiants([]);
+            setTimeout(() => setBulkSuccess(null), 3000);
+        }
+        catch (error) {
+            console.error('Erreur ajout masse:', error);
+            alert("Erreur lors de l'ajout des notes.");
+        }
+    });
+    return (_jsxs("div", { className: "space-y-8", children: [_jsxs("div", { children: [_jsxs("h3", { className: "text-lg font-bold text-gray-900 mb-4 flex items-center gap-2", children: [_jsx(Calendar, { className: "h-5 w-5 text-primary" }), " R\u00E9unions r\u00E9centes"] }), _jsx("p", { className: "text-gray-600 mb-4 text-sm", children: "Validez les r\u00E9unions que vous avez planifi\u00E9es via la messagerie pour qu'elles apparaissent officiellement dans le suivi des \u00E9tudiants." }), loading ? (_jsx("p", { children: "Chargement..." })) : reunions.length === 0 ? (_jsx(Card, { className: "bg-gray-50 border-dashed", children: _jsx(CardContent, { className: "py-8 text-center text-gray-500", children: "Aucune r\u00E9union en attente de validation." }) })) : (_jsx("div", { className: "grid gap-4 md:grid-cols-2", children: reunions.map((reunion) => (_jsx(Card, { className: "border-l-4 border-l-blue-500 hover:shadow-md transition-shadow", children: _jsx(CardContent, { className: "p-4", children: _jsxs("div", { className: "flex justify-between items-start", children: [_jsxs("div", { children: [_jsxs("h4", { className: "font-bold text-gray-900 flex items-center gap-2", children: [reunion.typeMessage === 'reunion_enligne' ? _jsx(Video, { className: "h-4 w-4" }) : _jsx(Users, { className: "h-4 w-4" }), reunion.titre || "Réunion sans titre"] }), _jsxs("div", { className: "mt-2 space-y-1 text-sm text-gray-600", children: [_jsxs("div", { className: "flex items-center gap-2", children: [_jsx(Clock, { className: "h-3 w-3" }), new Date(reunion.dateRendezVous).toLocaleDateString(), " \u00E0 ", reunion.heureRendezVous] }), reunion.lieu && (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx(MapPin, { className: "h-3 w-3" }), " ", reunion.lieu] }))] })] }), _jsxs(Button, { size: "sm", className: "ml-4 gap-2 bg-blue-600 hover:bg-blue-700", onClick: () => handleValiderReunion(reunion.id, reunion.dossierId || 0, reunion.titre), children: [_jsx(CheckCircle, { className: "h-4 w-4" }), "Valider"] })] }) }) }, reunion.id))) }))] }), _jsx("hr", { className: "border-gray-100" }), _jsxs("div", { children: [_jsxs("h3", { className: "text-lg font-bold text-gray-900 mb-4 flex items-center gap-2", children: [_jsx(FileText, { className: "h-5 w-5 text-primary" }), " Ajouter une note de suivi"] }), _jsx(Card, { children: _jsx(CardContent, { className: "p-6", children: _jsxs("form", { onSubmit: handleBulkSubmit, className: "space-y-6", children: [_jsxs("div", { children: [_jsxs("div", { className: "flex justify-between items-center mb-2", children: [_jsx("label", { className: "text-sm font-medium text-gray-700", children: "Concerne les \u00E9tudiants :" }), _jsx(Button, { type: "button", variant: "ghost", size: "sm", onClick: handleSelectAll, className: "h-8 text-xs", children: selectedEtudiants.length === etudiants.length ? 'Tout désélectionner' : 'Tout sélectionner' })] }), _jsxs("div", { className: "bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-48 overflow-y-auto grid md:grid-cols-2 gap-2", children: [Object.values(etudiants.reduce((acc, etudiant) => {
+                                                        if (!acc[etudiant.dossierId]) {
+                                                            acc[etudiant.dossierId] = [];
+                                                        }
+                                                        acc[etudiant.dossierId].push(etudiant);
+                                                        return acc;
+                                                    }, {})).map(group => {
+                                                        const dossierId = group[0].dossierId;
+                                                        const label = group.map(e => `${e.prenom} ${e.nom}`).join(' & ');
+                                                        return (_jsxs("label", { className: "flex items-center space-x-2 p-2 rounded hover:bg-gray-100 cursor-pointer", children: [_jsx("input", { type: "checkbox", checked: selectedEtudiants.includes(dossierId), onChange: (e) => {
+                                                                        if (e.target.checked) {
+                                                                            setSelectedEtudiants([...selectedEtudiants, dossierId]);
+                                                                        }
+                                                                        else {
+                                                                            setSelectedEtudiants(selectedEtudiants.filter(id => id !== dossierId));
+                                                                        }
+                                                                    }, className: "rounded border-gray-300 text-primary focus:ring-primary" }), _jsx("span", { className: "text-sm text-gray-700", children: label })] }, dossierId));
+                                                    }), etudiants.length === 0 && _jsx("p", { className: "text-sm text-gray-500 italic", children: "Aucun \u00E9tudiant actif." })] }), _jsxs("p", { className: "text-xs text-blue-600 mt-2", children: [selectedEtudiants.length, " dossier(s) s\u00E9lectionn\u00E9(s)"] })] }), _jsxs("div", { className: "grid md:grid-cols-2 gap-6", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Type d'activit\u00E9" }), _jsxs("select", { className: "w-full rounded-md border border-gray-300 p-2 text-sm", value: noteType, onChange: (e) => setNoteType(e.target.value), children: [_jsx("option", { value: "REUNION", children: "R\u00E9union" }), _jsx("option", { value: "CORRECTION", children: "Correction" }), _jsx("option", { value: "APPEL", children: "Appel t\u00E9l\u00E9phonique" }), _jsx("option", { value: "EMAIL", children: "\u00C9change Email" }), _jsx("option", { value: "AUTRE", children: "Autre" })] })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Date de l'action" }), _jsx("input", { type: "date", className: "w-full rounded-md border border-gray-300 p-2 text-sm", value: dateAction, onChange: (e) => setDateAction(e.target.value) })] })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Contenu de la note" }), _jsx("textarea", { required: true, rows: 4, className: "w-full rounded-md border border-gray-300 p-2 text-sm", placeholder: "D\u00E9crivez ce qui a \u00E9t\u00E9 fait ou convenu...", value: noteContenu, onChange: (e) => setNoteContenu(e.target.value) })] }), _jsx("div", { className: "flex justify-end", children: _jsxs(Button, { type: "submit", disabled: selectedEtudiants.length === 0 || !noteContenu, className: "gap-2", children: [_jsx(Plus, { className: "h-4 w-4" }), "Ajouter la note (", selectedEtudiants.length, ")"] }) }), bulkSuccess && (_jsxs("div", { className: "bg-green-50 text-green-700 p-3 rounded-md flex items-center gap-2 text-sm animate-in fade-in slide-in-from-bottom-2", children: [_jsx(CheckCircle, { className: "h-4 w-4" }), bulkSuccess] }))] }) }) })] })] }));
+};

@@ -71,7 +71,7 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
   const getInitialMenusOuverts = useCallback(() => {
     const path = emplacement.pathname;
     const menus: { [cle: string]: boolean } = {
-      'Ressources': path.startsWith('/etudiant/ressources') || path.startsWith('/professeur/ressources'),
+      'Bibliothèque': path.startsWith('/etudiant/ressources') || path.startsWith('/professeur/ressources'),
       'Assistant IA': path.startsWith('/etudiant/chatbot'),
       'Encadrement': path.startsWith('/candidat/encadrement'),
       'Gestion des classes': false,
@@ -122,16 +122,11 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
       chemin: '/etudiant/calendrier'
     },
 
-    // 3. Ressources de travail (commun pour étudiants et professeurs)
+    // 3. Bibliothèque (lien direct vers la médiathèque)
     {
-      nom: 'Ressources',
-      icone: <Folder className="mr-2 h-5 w-5" />,
-      sousmenu: [
-        // Les sous-menus seront filtrés dynamiquement selon le type d'utilisateur
-        { nom: 'Personnelles', icone: <Folder className="mr-2 h-4 w-4" />, chemin: '/etudiant/ressources/personnelles', cheminProfesseur: '/professeur/ressources/personnelles' },
-        { nom: 'Sauvegardées', icone: <Star className="mr-2 h-4 w-4" />, chemin: '/etudiant/ressources/sauvegardees', cheminProfesseur: '/professeur/ressources/sauvegardees' },
-        { nom: 'Bibliothèque numérique', icone: <Library className="mr-2 h-4 w-4" />, chemin: '/etudiant/ressources/mediatheque', cheminProfesseur: '/professeur/ressources/mediatheque' },
-      ]
+      nom: 'Bibliothèque',
+      icone: <Library className="mr-2 h-5 w-5" />,
+      chemin: '/etudiant/ressources/mediatheque'
     },
 
     // 4. Assistant et aide
@@ -204,7 +199,7 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
           'Mes Dossiers',        // 1. Activité principale
           'Encadrement',         // Encadrement candidat
           'Calendrier',          // 2. Planification
-          'Ressources',          // 3. Ressources de travail
+          'Bibliothèque',        // 3. Bibliothèque numérique
           'Assistant IA',        // 4. Assistant et aide
           'Notifications'       // 5. Informations
         ];
@@ -214,7 +209,7 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
           'Tableau de bord',
           'Mes Dossiers',        // 1. Activité principale
           'Calendrier',          // 2. Planification
-          'Ressources',      // 3. Ressources de travail
+          'Bibliothèque',        // 3. Bibliothèque numérique
           'Assistant IA',        // 4. Assistant et aide
           'Notifications'       // 5. Informations
         ];
@@ -222,7 +217,7 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
     } else if (user.type === 'professeur') {
       menus = [
         'Tableau de bord',
-        'Ressources',
+        'Bibliothèque',
         'Notifications',
         'Assistant IA',
         'Calendrier'
@@ -316,15 +311,6 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
                         className="pl-6 mt-1 space-y-1"
                       >
                         {item.sousmenu
-                          .filter(sousItem => {
-                            // Filtrer les sous-menus selon le type d'utilisateur
-                            if (item.nom === 'Ressources') {
-                              // Pour les professeurs, afficher tous les sous-menus (Personnelles, Sauvegardées, Médiathèque)
-                              // Pour les étudiants, afficher tous les sous-menus
-                              return true;
-                            }
-                            return true;
-                          })
                           .map((sousItem, sousIndex) => {
                             // Utiliser le chemin approprié selon le type d'utilisateur
                             const cheminFinal = (user?.type === 'professeur' && sousItem.cheminProfesseur)

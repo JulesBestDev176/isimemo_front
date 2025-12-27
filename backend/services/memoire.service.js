@@ -3,7 +3,7 @@
 // ============================================================================
 
 const natural = require('natural');
-const { Memoire } = require('../models');
+const Memoire = require('../models/Memoire');
 
 // Tokenizer et TF-IDF pour la recherche de similarité
 const tokenizer = new natural.WordTokenizer();

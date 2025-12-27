@@ -1,0 +1,30 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState, useEffect } from 'react';
+import { Clock, CheckCircle, XCircle, AlertCircle, Mail } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
+const EtapeAttenteReponseEncadrant = ({ dossier, demandeEncadrant }) => {
+    // Mock data - dans la vraie app, cela viendrait de l'API
+    const [demande, setDemande] = useState(demandeEncadrant);
+    // Simuler une réponse après un délai (pour la démo)
+    useEffect(() => {
+        if (demande && demande.statut === 'en_attente') {
+            // Dans la vraie app, on écouterait les mises à jour en temps réel
+            // Ici, on simule juste l'affichage
+        }
+    }, [demande]);
+    if (!demande) {
+        return (_jsx(Card, { children: _jsx(CardContent, { className: "py-12 text-center", children: _jsx("p", { className: "text-gray-600", children: "Aucune demande d'encadrant trouv\u00E9e" }) }) }));
+    }
+    const formatDate = (date) => {
+        return date.toLocaleDateString('fr-FR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+    return (_jsx("div", { className: "space-y-6", children: _jsxs(Card, { children: [_jsxs(CardHeader, { children: [_jsxs(CardTitle, { className: "flex items-center gap-2", children: [_jsx(Clock, { className: "h-5 w-5 text-primary" }), "Attente de r\u00E9ponse de l'encadrant"] }), _jsx(CardDescription, { children: "Votre demande a \u00E9t\u00E9 envoy\u00E9e \u00E0 l'encadrant. Vous serez notifi\u00E9(e) d\u00E8s qu'une r\u00E9ponse sera disponible." })] }), _jsxs(CardContent, { className: "space-y-6", children: [_jsx("div", { className: "p-4 bg-primary-50 border border-primary-200 rounded-lg", children: _jsxs("div", { className: "flex items-center gap-3", children: [_jsx("div", { className: "bg-primary-100 rounded-full p-2", children: _jsx(Mail, { className: "h-5 w-5 text-primary" }) }), _jsxs("div", { className: "flex-1", children: [_jsxs("h3", { className: "font-semibold text-gray-900 mb-1", children: ["Demande envoy\u00E9e \u00E0 ", demande.encadrant.prenom, " ", demande.encadrant.nom] }), _jsx("p", { className: "text-sm text-gray-600", children: demande.encadrant.email }), _jsxs("p", { className: "text-xs text-gray-500 mt-1", children: ["Envoy\u00E9e le ", formatDate(demande.dateDemande)] })] }), demande.statut === 'en_attente' && (_jsxs(Badge, { variant: "secondary", className: "bg-yellow-100 text-yellow-800 border-yellow-300", children: [_jsx(Clock, { className: "h-3 w-3 mr-1" }), "En attente"] })), demande.statut === 'acceptee' && (_jsxs(Badge, { variant: "default", className: "bg-green-600 text-white", children: [_jsx(CheckCircle, { className: "h-3 w-3 mr-1" }), "Accept\u00E9e"] })), demande.statut === 'refusee' && (_jsxs(Badge, { variant: "secondary", className: "bg-red-100 text-red-800 border-red-300", children: [_jsx(XCircle, { className: "h-3 w-3 mr-1" }), "Refus\u00E9e"] }))] }) }), _jsxs("div", { className: "p-4 bg-gray-50 border border-gray-200 rounded-lg", children: [_jsx("h4", { className: "font-semibold text-gray-900 mb-2", children: "Dossier concern\u00E9" }), _jsx("p", { className: "text-sm text-gray-700", children: demande.dossierMemoire.titre }), demande.dossierMemoire.description && (_jsx("p", { className: "text-xs text-gray-600 mt-1", children: demande.dossierMemoire.description }))] }), demande.statut === 'refusee' && demande.motifRefus && (_jsx("div", { className: "p-4 bg-red-50 border border-red-200 rounded-lg", children: _jsxs("div", { className: "flex items-start gap-2", children: [_jsx(AlertCircle, { className: "h-5 w-5 text-red-600 mt-0.5" }), _jsxs("div", { className: "flex-1", children: [_jsx("h4", { className: "font-semibold text-red-900 mb-1", children: "Motif de refus" }), _jsx("p", { className: "text-sm text-red-700", children: demande.motifRefus }), demande.dateReponse && (_jsxs("p", { className: "text-xs text-red-600 mt-2", children: ["R\u00E9ponse re\u00E7ue le ", formatDate(demande.dateReponse)] }))] })] }) })), demande.statut === 'en_attente' && (_jsx("div", { className: "p-4 bg-blue-50 border border-blue-200 rounded-lg", children: _jsxs("div", { className: "flex items-start gap-2", children: [_jsx(Clock, { className: "h-5 w-5 text-blue-600 mt-0.5" }), _jsx("div", { className: "flex-1", children: _jsx("p", { className: "text-sm text-blue-900", children: "Votre demande est en cours d'examen par l'encadrant. Vous recevrez une notification d\u00E8s qu'une r\u00E9ponse sera disponible." }) })] }) })), demande.statut === 'acceptee' && (_jsx("div", { className: "p-4 bg-green-50 border border-green-200 rounded-lg", children: _jsxs("div", { className: "flex items-start gap-2", children: [_jsx(CheckCircle, { className: "h-5 w-5 text-green-600 mt-0.5" }), _jsxs("div", { className: "flex-1", children: [_jsx("p", { className: "text-sm font-semibold text-green-900 mb-1", children: "Demande accept\u00E9e !" }), _jsx("p", { className: "text-sm text-green-700", children: "Votre encadrant a accept\u00E9 votre demande. Votre dossier va maintenant \u00EAtre soumis \u00E0 la commission de validation." }), demande.dateReponse && (_jsxs("p", { className: "text-xs text-green-600 mt-2", children: ["R\u00E9ponse re\u00E7ue le ", formatDate(demande.dateReponse)] }))] })] }) })), demande.statut === 'refusee' && (_jsx("div", { className: "p-4 bg-orange-50 border border-orange-200 rounded-lg", children: _jsxs("div", { className: "flex items-start gap-2", children: [_jsx(AlertCircle, { className: "h-5 w-5 text-orange-600 mt-0.5" }), _jsxs("div", { className: "flex-1", children: [_jsx("p", { className: "text-sm font-semibold text-orange-900 mb-1", children: "Demande refus\u00E9e" }), _jsx("p", { className: "text-sm text-orange-700", children: "Vous pouvez choisir un autre encadrant en retournant \u00E0 l'\u00E9tape pr\u00E9c\u00E9dente." })] })] }) }))] })] }) }));
+};
+export default EtapeAttenteReponseEncadrant;

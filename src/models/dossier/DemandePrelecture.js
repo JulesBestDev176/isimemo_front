@@ -1,0 +1,208 @@
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
+export var StatutDemandePrelecture;
+(function (StatutDemandePrelecture) {
+    StatutDemandePrelecture["EN_ATTENTE"] = "EN_ATTENTE";
+    StatutDemandePrelecture["EN_COURS"] = "EN_COURS";
+    StatutDemandePrelecture["VALIDE"] = "VALIDE";
+    StatutDemandePrelecture["REJETE"] = "REJETE"; // Pré-lecture rejetée
+})(StatutDemandePrelecture || (StatutDemandePrelecture = {}));
+// ============================================================================
+// MOCKS
+// ============================================================================
+import { mockDossiers } from './DossierMemoire';
+import { mockProfesseurs } from '../acteurs/Professeur';
+import { mockCandidats } from '../acteurs/Candidat';
+export const mockDemandesPrelecture = [
+    // Demande en attente pour l'encadrant ID 5 (Fatou Diallo - pré-lecteur, User.id = '5')
+    {
+        idDemandePrelecture: 1,
+        dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 104), // Aissatou Sarr - Toutes les tâches terminées
+        encadrantPrincipal: mockProfesseurs.find(p => p.idProfesseur === 4), // Mamadou Sarr (encadrant principal)
+        prelecteur: mockProfesseurs.find(p => p.idProfesseur === 5), // Fatou Diallo (pré-lecteur) - correspond à User.id = '5'
+        candidat: mockCandidats.find(c => c.idCandidat === 4), // Aissatou Sarr
+        dateDemande: new Date('2025-02-01'),
+        dateAssignation: new Date('2025-02-01'),
+        statut: StatutDemandePrelecture.EN_ATTENTE,
+        documentMemoire: {
+            cheminFichier: '/memoires/104/memoire_complet.pdf',
+            nomFichier: 'Memoire_Aissatou_Sarr.pdf',
+            taille: '3.2 MB',
+            dateDepot: new Date('2025-02-01')
+        }
+    },
+    // Demande en attente pour l'encadrant ID 4 (Mamadou Sarr - pré-lecteur, a l'encadrement actif ID 4)
+    {
+        idDemandePrelecture: 4,
+        dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 102), // Fatou Ndiaye
+        encadrantPrincipal: mockProfesseurs.find(p => p.idProfesseur === 5), // Fatou Diallo (encadrant principal)
+        prelecteur: mockProfesseurs.find(p => p.idProfesseur === 4), // Mamadou Sarr (pré-lecteur) - a l'encadrement actif
+        candidat: mockCandidats.find(c => c.idCandidat === 2), // Fatou Ndiaye
+        dateDemande: new Date('2025-02-02'),
+        dateAssignation: new Date('2025-02-02'),
+        statut: StatutDemandePrelecture.EN_ATTENTE,
+        documentMemoire: {
+            cheminFichier: '/memoires/102/memoire_complet.pdf',
+            nomFichier: 'Memoire_Fatou_Ndiaye.pdf',
+            taille: '3.5 MB',
+            dateDepot: new Date('2025-02-02')
+        }
+    },
+    // Demande en cours pour l'encadrant ID 5
+    {
+        idDemandePrelecture: 2,
+        dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 105), // Moussa Kane - Pré-lecture effectuée
+        encadrantPrincipal: mockProfesseurs.find(p => p.idProfesseur === 4), // Mamadou Sarr (encadrant principal)
+        prelecteur: mockProfesseurs.find(p => p.idProfesseur === 5), // Fatou Diallo (pré-lecteur)
+        candidat: mockCandidats.find(c => c.idCandidat === 5), // Moussa Kane
+        dateDemande: new Date('2025-01-28'),
+        dateAssignation: new Date('2025-01-28'),
+        dateTraitement: new Date('2025-02-05'),
+        statut: StatutDemandePrelecture.VALIDE,
+        commentaire: 'Mémoire de bonne qualité. Quelques ajustements mineurs suggérés mais globalement prêt pour la soutenance.',
+        documentMemoire: {
+            cheminFichier: '/memoires/105/memoire_complet.pdf',
+            nomFichier: 'Memoire_Moussa_Kane.pdf',
+            taille: '4.1 MB',
+            dateDepot: new Date('2025-01-28')
+        }
+    },
+    // Demande rejetée pour l'encadrant ID 4 (pour voir le workflow de rejet)
+    {
+        idDemandePrelecture: 3,
+        dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 101), // Amadou Diallo
+        encadrantPrincipal: mockProfesseurs.find(p => p.idProfesseur === 4), // Mamadou Sarr (encadrant principal)
+        prelecteur: mockProfesseurs.find(p => p.idProfesseur === 5), // Fatou Diallo (pré-lecteur)
+        candidat: mockCandidats.find(c => c.idCandidat === 1), // Amadou Diallo
+        dateDemande: new Date('2025-01-20'),
+        dateAssignation: new Date('2025-01-20'),
+        dateTraitement: new Date('2025-01-25'),
+        statut: StatutDemandePrelecture.REJETE,
+        feedbackRejet: {
+            commentaire: 'Le mémoire nécessite des corrections importantes avant la pré-lecture. La problématique doit être reformulée et la méthodologie doit être plus détaillée.',
+            corrections: [
+                'Reformuler la problématique avec plus de précision',
+                'Détailler davantage la méthodologie de recherche',
+                'Ajouter des références récentes dans l\'état de l\'art'
+            ],
+            dateRejet: new Date('2025-01-25')
+        },
+        documentMemoire: {
+            cheminFichier: '/memoires/101/memoire_complet.pdf',
+            nomFichier: 'Memoire_Amadou_Diallo.pdf',
+            taille: '2.8 MB',
+            dateDepot: new Date('2025-01-20')
+        }
+    },
+    // Demande supplémentaire pour user ID 4 (chef@isimemo.edu.sn qui correspond à Mamadou Sarr, idProfesseur: 4)
+    {
+        idDemandePrelecture: 5,
+        dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 103), // Ibrahima Ba
+        encadrantPrincipal: mockProfesseurs.find(p => p.idProfesseur === 5), // Fatou Diallo (encadrant principal)
+        prelecteur: mockProfesseurs.find(p => p.idProfesseur === 4), // Mamadou Sarr (pré-lecteur)
+        candidat: mockCandidats.find(c => c.idCandidat === 3), // Ibrahima Ba
+        dateDemande: new Date('2025-02-05'),
+        dateAssignation: new Date('2025-02-05'),
+        statut: StatutDemandePrelecture.EN_ATTENTE,
+        documentMemoire: {
+            cheminFichier: '/memoires/103/memoire_complet.pdf',
+            nomFichier: 'Memoire_Ibrahima_Ba.pdf',
+            taille: '3.8 MB',
+            dateDepot: new Date('2025-02-05')
+        }
+    },
+    // Demande supplémentaire validée pour user ID 5 (encadrant@isimemo.edu.sn)
+    {
+        idDemandePrelecture: 6,
+        dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 106), // Si le dossier existe
+        encadrantPrincipal: mockProfesseurs.find(p => p.idProfesseur === 4), // Mamadou Sarr
+        prelecteur: mockProfesseurs.find(p => p.idProfesseur === 5), // Fatou Diallo (correspond à user ID 5)
+        candidat: mockCandidats.find(c => c.idCandidat === 6),
+        dateDemande: new Date('2025-01-15'),
+        dateAssignation: new Date('2025-01-15'),
+        dateTraitement: new Date('2025-01-22'),
+        statut: StatutDemandePrelecture.VALIDE,
+        commentaire: 'Excellent travail. Le mémoire est prêt pour la soutenance.',
+        documentMemoire: {
+            cheminFichier: '/memoires/106/memoire_complet.pdf',
+            nomFichier: 'Memoire_Candidat_6.pdf',
+            taille: '4.5 MB',
+            dateDepot: new Date('2025-01-15')
+        }
+    }
+];
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+/**
+ * Récupère les demandes de pré-lecture assignées à un encadrant (pré-lecteur)
+ */
+export const getDemandesPrelectureByPrelecteur = (idPrelecteur) => {
+    return mockDemandesPrelecture.filter(d => { var _a; return ((_a = d.prelecteur) === null || _a === void 0 ? void 0 : _a.idProfesseur) === idPrelecteur; });
+};
+/**
+ * Récupère les demandes de pré-lecture pour un encadrant principal (qui encadre l'étudiant)
+ */
+export const getDemandesPrelectureByEncadrantPrincipal = (idEncadrant) => {
+    return mockDemandesPrelecture.filter(d => { var _a; return ((_a = d.encadrantPrincipal) === null || _a === void 0 ? void 0 : _a.idProfesseur) === idEncadrant; });
+};
+/**
+ * Récupère une demande de pré-lecture par son ID
+ */
+export const getDemandePrelectureById = (id) => {
+    return mockDemandesPrelecture.find(d => d.idDemandePrelecture === id);
+};
+/**
+ * Récupère les demandes de pré-lecture en attente pour un pré-lecteur
+ */
+export const getDemandesPrelectureEnAttente = (idPrelecteur) => {
+    return mockDemandesPrelecture.filter(d => { var _a; return ((_a = d.prelecteur) === null || _a === void 0 ? void 0 : _a.idProfesseur) === idPrelecteur && d.statut === StatutDemandePrelecture.EN_ATTENTE; });
+};
+/**
+ * Récupère les demandes de pré-lecture rejetées pour un encadrant principal
+ */
+export const getDemandesPrelectureRejetees = (idEncadrant) => {
+    return mockDemandesPrelecture.filter(d => { var _a; return ((_a = d.encadrantPrincipal) === null || _a === void 0 ? void 0 : _a.idProfesseur) === idEncadrant && d.statut === StatutDemandePrelecture.REJETE; });
+};
+/**
+ * Valide une demande de pré-lecture
+ */
+export const validerPrelecture = (idDemande, commentaire) => {
+    const demande = mockDemandesPrelecture.find(d => d.idDemandePrelecture === idDemande);
+    if (demande) {
+        demande.statut = StatutDemandePrelecture.VALIDE;
+        demande.dateTraitement = new Date();
+        if (commentaire) {
+            demande.commentaire = commentaire;
+        }
+        // Mettre à jour le dossier
+        if (demande.dossierMemoire) {
+            demande.dossierMemoire.prelectureEffectuee = true;
+        }
+        return demande;
+    }
+    return undefined;
+};
+/**
+ * Rejette une demande de pré-lecture
+ */
+export const rejeterPrelecture = (idDemande, commentaire, corrections) => {
+    const demande = mockDemandesPrelecture.find(d => d.idDemandePrelecture === idDemande);
+    if (demande) {
+        demande.statut = StatutDemandePrelecture.REJETE;
+        demande.dateTraitement = new Date();
+        demande.feedbackRejet = {
+            commentaire,
+            corrections,
+            dateRejet: new Date()
+        };
+        // Mettre à jour le dossier
+        if (demande.dossierMemoire) {
+            demande.dossierMemoire.prelectureEffectuee = false;
+            demande.dossierMemoire.autorisePrelecture = false;
+        }
+        return demande;
+    }
+    return undefined;
+};

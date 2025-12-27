@@ -1,0 +1,29 @@
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { Video, MapPin, FileText, MessageSquare, Download, Check } from 'lucide-react';
+import { formatDateTime } from './utils';
+const getTypeMessageColor = (type) => {
+    switch (type) {
+        case 'texte': return 'bg-blue-50 text-blue-700 border-blue-200';
+        case 'reunion-meet': return 'bg-blue-50 text-blue-700 border-blue-200';
+        case 'presentiel': return 'bg-blue-50 text-blue-700 border-blue-200';
+        case 'document': return 'bg-blue-50 text-blue-700 border-blue-200';
+        default: return 'bg-blue-50 text-blue-700 border-blue-200';
+    }
+};
+const getTypeMessageIcon = (type) => {
+    switch (type) {
+        case 'texte': return _jsx(MessageSquare, { className: "h-4 w-4" });
+        case 'reunion-meet': return _jsx(Video, { className: "h-4 w-4" });
+        case 'presentiel': return _jsx(MapPin, { className: "h-4 w-4" });
+        case 'document': return _jsx(FileText, { className: "h-4 w-4" });
+        default: return _jsx(MessageSquare, { className: "h-4 w-4" });
+    }
+};
+export const MessageItem = ({ message, onCopyLink, copiedLinkId }) => {
+    const isEncadrant = message.expediteur === 'encadrant';
+    return (_jsx("div", { className: `flex ${isEncadrant ? 'justify-end' : 'justify-start'}`, children: _jsxs("div", { className: "max-w-[70%] p-4 border border-gray-200 bg-gray-100 text-gray-900", children: [_jsxs("div", { className: "flex items-center justify-between mb-2", children: [_jsx("span", { className: "text-sm font-medium", children: isEncadrant ? 'Encadrant' : 'Étudiant' }), _jsx("span", { className: "text-xs text-gray-500", children: formatDateTime(message.date) })] }), message.type && (_jsx("div", { className: "flex items-center gap-2 mb-2", children: _jsxs("span", { className: `px-2 py-1 text-xs rounded-full border flex items-center gap-1 ${getTypeMessageColor(message.type)}`, children: [getTypeMessageIcon(message.type), message.type === 'reunion-meet' ? 'Réunion Meet' :
+                                message.type === 'presentiel' ? 'Présentiel' :
+                                    message.type === 'document' ? 'Document PDF' : 'Texte'] }) })), message.titre && (_jsx("h4", { className: "font-semibold text-gray-900 mb-2", children: message.titre })), _jsx("p", { className: "text-sm mb-3", children: message.contenu }), message.lienMeet && (_jsxs("div", { className: "bg-white border border-gray-200 p-3 mt-3 rounded", children: [_jsxs("div", { className: "flex items-center space-x-2 mb-2", children: [_jsx(Video, { className: "h-4 w-4 text-primary" }), _jsx("h5", { className: "font-medium text-sm text-gray-900", children: "D\u00E9tails de la r\u00E9union" })] }), _jsxs("div", { className: "space-y-2 text-xs", children: [message.dateRendezVous && (_jsxs("p", { className: "text-gray-700", children: [_jsx("span", { className: "font-medium", children: "Date:" }), " ", message.dateRendezVous, message.heureRendezVous && ` à ${message.heureRendezVous}`] })), _jsxs("div", { className: "pt-2 border-t border-gray-200", children: [_jsx("p", { className: "font-medium mb-2 text-gray-900", children: "Lien de la r\u00E9union:" }), _jsxs("div", { className: "flex items-center space-x-2 flex-wrap", children: [_jsx("a", { href: message.lienMeet, target: "_blank", rel: "noopener noreferrer", className: "text-primary hover:text-primary-700 underline break-all flex-1 min-w-0", children: message.lienMeet }), onCopyLink && (_jsx("button", { onClick: () => onCopyLink(message.lienMeet || '', message.id), className: `px-2 py-1 text-xs rounded flex-shrink-0 transition-colors flex items-center space-x-1 ${copiedLinkId === message.id
+                                                        ? 'bg-green-600 text-white'
+                                                        : 'bg-primary text-white hover:bg-primary-700'}`, title: "Copier le lien", children: copiedLinkId === message.id ? (_jsxs(_Fragment, { children: [_jsx(Check, { className: "h-3 w-3" }), _jsx("span", { children: "Copi\u00E9!" })] })) : (_jsx("span", { children: "Copier" })) }))] })] })] })] })), message.lieu && !message.lienMeet && (_jsxs("div", { className: "bg-white border border-gray-200 p-3 mt-3 rounded", children: [_jsxs("div", { className: "flex items-center space-x-2 mb-2", children: [_jsx(MapPin, { className: "h-4 w-4 text-primary" }), _jsx("h5", { className: "font-medium text-sm text-gray-900", children: "D\u00E9tails du rendez-vous" })] }), _jsxs("div", { className: "space-y-1 text-xs text-gray-700", children: [message.dateRendezVous && (_jsxs("p", { children: [_jsx("span", { className: "font-medium", children: "Date:" }), " ", message.dateRendezVous, message.heureRendezVous && ` à ${message.heureRendezVous}`] })), _jsxs("p", { children: [_jsx("span", { className: "font-medium", children: "Lieu:" }), " ", message.lieu] })] })] })), message.nomDocument && (_jsx("div", { className: "bg-white border border-gray-200 p-3 mt-3 rounded", children: _jsxs("div", { className: "flex items-center justify-between", children: [_jsxs("div", { className: "flex items-center space-x-3", children: [_jsx("div", { className: "w-10 h-10 bg-primary rounded-lg flex items-center justify-center", children: _jsx(FileText, { className: "h-5 w-5 text-white" }) }), _jsxs("div", { children: [_jsx("h5", { className: "font-medium text-sm text-gray-900", children: message.nomDocument }), message.tailleDocument && (_jsx("p", { className: "text-xs text-gray-600", children: message.tailleDocument }))] })] }), message.cheminDocument && (_jsxs("button", { onClick: () => window.open(message.cheminDocument, '_blank'), className: "px-2 py-1.5 bg-primary text-white rounded hover:bg-primary-700 transition-colors flex items-center space-x-2 text-xs", children: [_jsx(Download, { className: "h-3 w-3" }), _jsx("span", { children: "T\u00E9l\u00E9charger" })] }))] }) }))] }) }));
+};

@@ -31,6 +31,7 @@ const Profil = lazy(() => import("./pages/common/Profil"));
 const Calendrier = lazy(() => import("./pages/common/Calendrier"));
 const RessourcesSauvegardees = lazy(() => import("./pages/common/RessourcesSauvegardees"));
 const Mediatheque = lazy(() => import("./pages/common/Mediatheque"));
+const Bibliotheque = lazy(() => import("./pages/common/Bibliotheque"));
 const AssistantIA = lazy(() => import("./pages/common/AssistantIA"));
 const NotificationsEtudiant = lazy(() => import("./pages/common/Notifications"));
 const Encadrement = lazy(() => import("./pages/candidat/Encadrement"));
@@ -273,6 +274,58 @@ const AnimatedRoutes = () => {
                 <Suspense fallback={<PageLoader />}>
                   <MainLayout>
                     <SoutenanceChef />
+                  </MainLayout>
+                </Suspense>
+              }
+            />
+
+            {/* Routes Bibliothèque/Médiathèque */}
+            <Route
+              path="/etudiant/ressources/mediatheque"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <Bibliotheque />
+                  </MainLayout>
+                </Suspense>
+              }
+            />
+            <Route
+              path="/professeur/ressources/mediatheque"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <Bibliotheque />
+                  </MainLayout>
+                </Suspense>
+              }
+            />
+            <Route
+              path="/etudiant/calendrier"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <Calendrier />
+                  </MainLayout>
+                </Suspense>
+              }
+            />
+            <Route
+              path="/etudiant/notifications"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <NotificationsEtudiant />
+                  </MainLayout>
+                </Suspense>
+              }
+            />
+            <Route
+              path="/etudiant/chatbot"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <AssistantIA />
                   </MainLayout>
                 </Suspense>
               }

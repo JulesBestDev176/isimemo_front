@@ -47,6 +47,7 @@ import CarteMemoire from "../../components/CarteMemoire";
 import Footer from "../../components/Footer";
 import AffichageMemoire from "../../components/AffichageMemoire";
 import { Memoire, memoiresData } from "../../data/memoires.data";
+import { fuzzyVectorSearch } from "../../utils/fuzzySearch";
 
 const Memoires = () => {
   const [memoires, setMemoires] = useState(memoiresData);
@@ -80,19 +81,27 @@ const Memoires = () => {
     document.title = "memoires - ISIMemo";
   }, []);
 
-  // Effet pour la filtration
+  // Effet pour la filtration avec recherche vectorielle floue
   useEffect(() => {
     let resultat = [...memoires];
 
-    // Filtrer par recherche (titre, auteur, description, etiquettes)
+    // Filtrer par recherche vectorielle avec tolérance aux fautes
     if (requeteRecherche) {
-      const requete = requeteRecherche.toLowerCase();
-      resultat = resultat.filter(memoire =>
-        memoire.titre.toLowerCase().includes(requete) ||
-        memoire.auteur.toLowerCase().includes(requete) ||
-        memoire.description.toLowerCase().includes(requete) ||
-        memoire.etiquettes.some(etiquette => etiquette.toLowerCase().includes(requete))
+      // Utiliser la recherche vectorielle floue
+      const searchResults = fuzzyVectorSearch(
+        requeteRecherche,
+        resultat,
+        ['titre', 'auteur', 'description', 'etiquettes'],
+        {
+          titre: 10,        // Poids le plus élevé pour le titre
+          auteur: 8,        // Poids élevé pour l'auteur
+          etiquettes: 6,    // Poids moyen pour les étiquettes
+          description: 4    // Poids plus faible pour la description
+        }
       );
+
+      // Extraire les mémoires avec un score > 0 (pertinents)
+      resultat = searchResults.map(result => result.item);
     }
 
     // Filtrer par département
@@ -116,8 +125,11 @@ const Memoires = () => {
       );
     }
 
-    // Trier par année académique (les plus récents en premier)
-    resultat.sort((a, b) => b.annee.localeCompare(a.annee));
+    // Si pas de recherche textuelle, trier par année académique (les plus récents en premier)
+    if (!requeteRecherche) {
+      resultat.sort((a, b) => b.annee.localeCompare(a.annee));
+    }
+    // Sinon, les résultats sont déjà triés par pertinence grâce à fuzzyVectorSearch
 
     setMemoiresFiltres(resultat);
     // Réinitialiser à la première page lors d'un changement de filtre
