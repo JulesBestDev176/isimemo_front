@@ -4,9 +4,10 @@ import { Memoire } from "../data/memoires.data";
 interface CarteMemoireProps {
   memoire: Memoire;
   onClick: (memoire: Memoire) => void;
+  isRecommended?: boolean;
 }
 
-const CarteMemoire = ({ memoire, onClick }: CarteMemoireProps) => {
+const CarteMemoire = ({ memoire, onClick, isRecommended = false }: CarteMemoireProps) => {
   return (
     <motion.div
       className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all transform hover:-translate-y-1 border border-gray-100 cursor-pointer"
@@ -37,6 +38,12 @@ const CarteMemoire = ({ memoire, onClick }: CarteMemoireProps) => {
               <span className="bg-primary-50 text-primary text-xs font-medium py-0.5 px-2 rounded">
                 {memoire.annee}
               </span>
+              {isRecommended && (
+                <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold py-0.5 px-2 rounded flex items-center gap-1 shadow-sm">
+                  <span className="material-icons text-xs">star</span>
+                  Recommandé
+                </span>
+              )}
             </div>
             
             {/* Titre */}

@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import memoireSearchService from '../../services/memoireSearch.service';
+import { fuzzyVectorSearch } from '../../utils/fuzzySearch';
 import { 
   FiSearch, 
   FiFolder, 
@@ -15,7 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // Types pour les données
 interface Document {
-  id: number;
+  id: number | string;
   name: string;
   fileName: string;
   type: string;
@@ -29,16 +31,94 @@ interface Document {
   niveau?: 'Licence';
   departement?: string;
   annee?: string;
+  motsCles?: string;
 }
 
 // Composant principal
 const Bibliotheque: React.FC = () => {
   const [selectedFolder, setSelectedFolder] = useState('all');
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showViewModal, setShowViewModal] = useState(false);
   const [currentItem, setCurrentItem] = useState<Document | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [mongoDocuments, setMongoDocuments] = useState<Document[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userPreferences, setUserPreferences] = useState<{
+    keywords: string[];
+    departments: { [key: string]: number };
+    years: { [key: string]: number };
+    categories: { [key: string]: number };
+  }>({ keywords: [], departments: {}, years: {}, categories: {} });
+
+  // Charger les documents depuis MongoDB
+  useEffect(() => {
+    const loadDocuments = async () => {
+      try {
+        setIsLoading(true);
+        console.log('📥 Chargement des documents depuis MongoDB...');
+        const memoires = await memoireSearchService.getAllMemoires();
+        
+        const convertedDocs: Document[] = memoires.map((m: any) => ({
+          id: 'mongo_' + (m._id || m.id),
+          name: m.titre,
+          fileName: m.cheminFichier,
+          type: 'pdf',
+          size: '2.5 MB',
+          uploadedBy: m.auteurs || m.auteur,
+          date: new Date().toLocaleDateString('fr-FR'),
+          url: m.cheminFichier,
+          departement: m.departement,
+          annee: m.annee,
+          category: m.domaineEtude,
+          description: m.description || m.resume,
+          niveau: 'Licence' as const,
+          important: false,
+          motsCles: Array.isArray(m.motsCles) ? m.motsCles.join(' ') : ''
+        }));
+        
+        console.log('✅ ' + convertedDocs.length + ' documents chargés depuis MongoDB');
+        setMongoDocuments(convertedDocs);
+      } catch (error) {
+        console.error('❌ Erreur chargement MongoDB:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadDocuments();
+  }, []);
+
+  // Charger les préférences utilisateur pour les recommandations
+  useEffect(() => {
+    const loadUserPreferences = async () => {
+      try {
+        const sessionId = localStorage.getItem('sessionId');
+        if (!sessionId) return;
+        
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+        
+        // Charger les mots-clés populaires et les métadonnées de consultation
+        const [keywordsRes, metadataRes] = await Promise.all([
+          fetch(`${API_URL}/search-history/keywords?sessionId=${sessionId}`).then(r => r.json()).catch(() => ({ keywords: [] })),
+          fetch(`${API_URL}/consultations/metadata?sessionId=${sessionId}`).then(r => r.json()).catch(() => ({ metadata: {} }))
+        ]);
+        
+        const prefs = {
+          keywords: keywordsRes.keywords?.map((k: any) => k.keyword || k) || [],
+          departments: metadataRes.metadata?.departements || {},
+          years: metadataRes.metadata?.annees || {},
+          categories: metadataRes.metadata?.categories || {}
+        };
+        
+        setUserPreferences(prefs);
+        console.log('🎯 Préférences utilisateur chargées:', prefs);
+      } catch (error) {
+        console.error('Erreur chargement préférences:', error);
+      }
+    };
+    loadUserPreferences();
+  }, []);
   
   // Document important unique (Canevas 2024)
   const importantDocuments: Document[] = [
@@ -334,22 +414,130 @@ const Bibliotheque: React.FC = () => {
     ];
   }, [documents, importantDocuments]);
   
-  // Tous les documents
-  const allDocuments = useMemo(() => [...importantDocuments, ...documents], [documents, importantDocuments]);
+  // Calculer le score de recommandation pour un document
+  const calculateRecommendationScore = (doc: Document): number => {
+    let score = 0;
+    
+    // Score basé sur la catégorie (IA, Big Data, etc.) - PRIORITÉ MAX (poids : 50)
+    if (doc.category && userPreferences.categories[doc.category]) {
+      score += userPreferences.categories[doc.category] * 50;
+    }
+    
+    // Score basé sur les mots-clés recherchés (poids : 25 par mot-clé)
+    if (doc.motsCles && userPreferences.keywords.length > 0) {
+      const docKeywords = doc.motsCles.toLowerCase();
+      userPreferences.keywords.forEach(keyword => {
+        if (docKeywords.includes(keyword.toLowerCase())) {
+          score += 25;
+        }
+      });
+    }
+    
+    // Score basé sur le département (poids : 20)
+    if (doc.departement && userPreferences.departments[doc.departement]) {
+      score += userPreferences.departments[doc.departement] * 20;
+    }
+    
+    // Score basé sur l'année (poids : 10)
+    if (doc.annee && userPreferences.years[doc.annee]) {
+      score += userPreferences.years[doc.annee] * 10;
+    }
+    
+    // Score basé sur les mots-clés (poids : 15 par mot-clé)
+    if (doc.motsCles && userPreferences.keywords.length > 0) {
+      const docKeywords = doc.motsCles.toLowerCase();
+      userPreferences.keywords.forEach(keyword => {
+        if (docKeywords.includes(keyword.toLowerCase())) {
+          score += 15;
+        }
+      });
+    }
+    
+    // Score basé sur la description (poids : 10 par mot-clé)
+    if (doc.description && userPreferences.keywords.length > 0) {
+      const docDesc = doc.description.toLowerCase();
+      userPreferences.keywords.forEach(keyword => {
+        if (docDesc.includes(keyword.toLowerCase())) {
+          score += 10;
+        }
+      });
+    }
+    
+    return score;
+  };
   
-  // Filtrage des documents
+  // Tous les documents triés par recommandation
+  const allDocuments = useMemo(() => {
+    const allDocs = [...importantDocuments, ...mongoDocuments, ...documents];
+    
+    // Si des préférences existent, trier par score de recommandation
+    const hasPreferences = userPreferences.keywords.length > 0 || 
+      Object.keys(userPreferences.departments).length > 0 ||
+      Object.keys(userPreferences.categories).length > 0;
+    
+    if (hasPreferences) {
+      const scoredDocs = allDocs.map(doc => ({
+        doc,
+        score: doc.important ? 1000 : calculateRecommendationScore(doc) // Documents importants toujours en premier
+      }));
+      
+      scoredDocs.sort((a, b) => b.score - a.score);
+      
+      console.log('📊 Documents triés par recommandation:', scoredDocs.slice(0, 5).map(d => ({
+        name: d.doc.name.substring(0, 50),
+        score: d.score,
+        dept: d.doc.departement
+      })));
+      
+      return scoredDocs.map(d => d.doc);
+    }
+    
+    return allDocs;
+  }, [documents, importantDocuments, mongoDocuments, userPreferences]);
+  
+  // Filtrage des documents avec recherche fuzzy et logs
   const filteredItems = useMemo(() => {
-    return allDocuments.filter(item => {
-      // Filtre par dossier
+    let results = allDocuments.filter(item => {
       if (selectedFolder === 'important' && !item.important) return false;
       if (selectedFolder === 'licence' && item.niveau !== 'Licence') return false;
-      
-      // Filtre par recherche
-      const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           item.uploadedBy.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      return matchesSearch;
+      return true;
     });
+    
+    // Recherche fuzzy si une requête est active
+    if (searchQuery && searchQuery.trim().length > 0) {
+      const searchResults = fuzzyVectorSearch(
+        searchQuery,
+        results,
+        ['motsCles', 'name', 'category', 'departement', 'annee', 'description', 'uploadedBy'],
+        {
+          motsCles: 12,
+          category: 10,
+          departement: 9,
+          annee: 8,
+          description: 7,
+          uploadedBy: 5,
+          name: 4
+        }
+      );
+      results = searchResults.map(r => r.item);
+      
+      // Log des résultats
+      console.log('🔍 Recherche Bibliotheque:', searchQuery);
+      console.log('📊 Résultats:', {
+        query: searchQuery,
+        count: results.length,
+        metadata: results.slice(0, 5).map(m => ({
+          name: m.name,
+          motsCles: m.motsCles,
+          departement: m.departement,
+          annee: m.annee,
+          category: m.category,
+          uploadedBy: m.uploadedBy
+        }))
+      });
+    }
+    
+    return results;
   }, [allDocuments, selectedFolder, searchQuery]);
   
   // Pagination
@@ -364,9 +552,70 @@ const Bibliotheque: React.FC = () => {
     setCurrentPage(1);
   }, [selectedFolder, searchQuery]);
   
-  const handleViewItem = (item: Document) => {
+  // Fonction de recherche avec enregistrement d'activité
+  const handleSearch = async () => {
+    const query = searchInput.trim();
+    if (!query) return;
+    
+    setSearchQuery(query);
+    setCurrentPage(1);
+    
+    // Enregistrer la recherche pour le système de recommandation
+    try {
+      const sessionId = localStorage.getItem('sessionId') || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('sessionId', sessionId);
+      
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+      
+      await fetch(`${API_URL}/search-history`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          query: query,
+          resultCount: filteredItems.length,
+          source: 'bibliotheque'
+        })
+      });
+      
+      console.log('📝 Recherche enregistrée:', query);
+    } catch (error) {
+      console.error('Erreur enregistrement recherche:', error);
+    }
+  };
+  
+  const handleViewItem = async (item: Document) => {
     setCurrentItem(item);
     setShowViewModal(true);
+    
+    // Enregistrer la consultation pour le système de recommandation
+    try {
+      const sessionId = localStorage.getItem('sessionId') || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('sessionId', sessionId);
+      
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+      
+      await fetch(`${API_URL}/consultations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          documentId: typeof item.id === 'string' ? parseInt(item.id.replace('mongo_', '')) : item.id,
+          documentType: 'document',
+          metadata: {
+            departement: item.departement,
+            annee: item.annee,
+            titre: item.name,
+            category: item.category,
+            formation: item.niveau
+          }
+        })
+      });
+      
+      console.log('📝 Consultation enregistrée:', item.name);
+    } catch (error) {
+      console.error('Erreur lors de l\'enregistrement de la consultation:', error);
+    }
   };
   
   const getIcon = (important: boolean = false) => {
@@ -529,15 +778,28 @@ const Bibliotheque: React.FC = () => {
               className="bg-white border border-gray-200 rounded-lg"
             >
               <div className="p-3 border-b border-gray-100">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Rechercher des documents..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                  />
-                  <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      placeholder="Rechercher des documents..."
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSearch();
+                        }
+                      }}
+                      className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                    />
+                    <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  </div>
+                  <button
+                    onClick={handleSearch}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm whitespace-nowrap"
+                  >
+                    Rechercher
+                  </button>
                 </div>
               </div>
               

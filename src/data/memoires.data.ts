@@ -10,14 +10,19 @@ export interface Memoire {
   id: number;
   titre: string;
   auteur: string;
+  auteurs?: string; // MongoDB field
   annee: string;
   departement: string;
   formation: string;
+  filiere?: string; // MongoDB field
   description: string;
   resume: string;
   etiquettes: string[];
+  motsCles?: string[]; // MongoDB field
+  domaineEtude?: string; // MongoDB field
   contacts: Contact[];
   cheminFichier: string;
+  fichierPdf?: string; // MongoDB field
 }
 
 export const memoiresData: Memoire[] = [

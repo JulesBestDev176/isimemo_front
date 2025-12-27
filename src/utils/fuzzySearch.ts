@@ -92,25 +92,26 @@ export function calculateVectorScore(text: string, query: string): number {
   for (const queryWord of queryWords) {
     let bestMatchScore = 0;
     
-    // Correspondance exacte dans le texte complet (bonus)
+    // Correspondance exacte dans le texte complet (bonus élevé)
     if (textLower.includes(queryWord)) {
-      bestMatchScore = 1.5;
+      bestMatchScore = 2.0;
     } else {
       // Recherche de correspondance floue dans les mots
       for (const textWord of textWords) {
         const wordSimilarity = similarityScore(queryWord, textWord);
         
-        // Bonus si le mot commence par les mêmes lettres
-        if (textWord.startsWith(queryWord.substring(0, Math.min(3, queryWord.length)))) {
-          bestMatchScore = Math.max(bestMatchScore, wordSimilarity * 1.2);
+        // Bonus si le mot commence par les mêmes lettres (TRÈS tolérant)
+        const prefixLength = Math.min(2, queryWord.length, textWord.length);
+        if (textWord.startsWith(queryWord.substring(0, prefixLength))) {
+          bestMatchScore = Math.max(bestMatchScore, wordSimilarity * 1.5);
         } else {
           bestMatchScore = Math.max(bestMatchScore, wordSimilarity);
         }
       }
     }
     
-    // Seuil minimum de similarité pour compter
-    if (bestMatchScore >= 0.65) {
+    // Seuil TRÈS bas pour être très tolérant aux fautes
+    if (bestMatchScore >= 0.4) {  // Très tolérant !
       score += bestMatchScore;
     }
   }

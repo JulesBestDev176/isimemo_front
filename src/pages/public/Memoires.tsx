@@ -48,12 +48,17 @@ import Footer from "../../components/Footer";
 import AffichageMemoire from "../../components/AffichageMemoire";
 import { Memoire, memoiresData } from "../../data/memoires.data";
 import { fuzzyVectorSearch } from "../../utils/fuzzySearch";
+import memoireSearchService from "../../services/memoireSearch.service";
+import searchHistoryService from "../../services/searchHistory.service";
+import documentConsultationService from "../../services/documentConsultation.service";
 
 const Memoires = () => {
   const [memoires, setMemoires] = useState(memoiresData);
   const [memoiresFiltres, setMemoiresFiltres] = useState(memoiresData);
   const [memoireSelectionne, setMemoireSelectionne] = useState<Memoire | null>(null);
   const [vueDetaillee, setVueDetaillee] = useState(false);
+  const [popularKeywords, setPopularKeywords] = useState<Array<{keyword: string, count: number}>>([]);
+  const [frequentMetadata, setFrequentMetadata] = useState<any>({});
 
   // Pagination
   const memoiresParPage = 5;
@@ -64,10 +69,36 @@ const Memoires = () => {
   const nombreTotalPages = Math.ceil(memoiresFiltres.length / memoiresParPage);
 
   // Filtres
-  const [requeteRecherche, setRequeteRecherche] = useState("");
+  const [searchInput, setSearchInput] = useState(""); // Input de recherche
+  const [requeteRecherche, setRequeteRecherche] = useState(""); // Requête active
   const [departementSelectionne, setDepartementSelectionne] = useState("");
   const [anneeSelectionnee, setAnneeSelectionnee] = useState("");
   const [etiquetteSelectionnee, setEtiquetteSelectionnee] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Charger les métadonnées fréquentes au montage du composant (basé sur consultations)
+  useEffect(() => {
+    const loadRecommendations = async () => {
+      const metadata = await documentConsultationService.getFrequentMetadata();
+      setFrequentMetadata(metadata);
+      
+      // Si on a des consultations et pas de recherche active, trier par similarité
+      if (Object.keys(metadata.departements).length > 0 && !requeteRecherche) {
+        const memoiresWithScores = memoires.map(memoire => ({
+          memoire,
+          score: documentConsultationService.calculateSimilarityScore(memoire, metadata)
+        }));
+        
+        // Trier par score décroissant
+        memoiresWithScores.sort((a, b) => b.score - a.score);
+        
+        setMemoires(memoiresWithScores.map(m => m.memoire));
+        console.log('✅ Recommandations chargées basées sur les consultations');
+      }
+    };
+    
+    loadRecommendations();
+  }, []);
 
   // Données pour les filtres
   const departements = [...new Set(memoires.map(m => m.departement))];
@@ -81,62 +112,181 @@ const Memoires = () => {
     document.title = "memoires - ISIMemo";
   }, []);
 
-  // Effet pour la filtration avec recherche vectorielle floue
+  // Effet pour la filtration avec recherche vectorielle backend
   useEffect(() => {
-    let resultat = [...memoires];
+    const performSearch = async () => {
+      let resultat = [...memoires];
 
-    // Filtrer par recherche vectorielle avec tolérance aux fautes
-    if (requeteRecherche) {
-      // Utiliser la recherche vectorielle floue
-      const searchResults = fuzzyVectorSearch(
-        requeteRecherche,
-        resultat,
-        ['titre', 'auteur', 'description', 'etiquettes'],
-        {
-          titre: 10,        // Poids le plus élevé pour le titre
-          auteur: 8,        // Poids élevé pour l'auteur
-          etiquettes: 6,    // Poids moyen pour les étiquettes
-          description: 4    // Poids plus faible pour la description
+      // Filtrer par recherche vectorielle avec tolérance aux fautes
+      if (requeteRecherche) {
+        setIsSearching(true);
+        
+        try {
+          // Essayer la recherche Gemini (lit le contenu complet des PDF avec IA)
+          console.log('🤖 Recherche Gemini AI...');
+          const backendResults = await memoireSearchService.geminiSearch(requeteRecherche);
+          
+          if (backendResults && backendResults.length > 0) {
+            // Utiliser les résultats Gemini
+            resultat = backendResults;
+            console.log(`✅ Recherche Gemini: ${backendResults.length} résultats`);
+            
+            // Logger les métadonnées des résultats Gemini
+            console.log('📊 Métadonnées Gemini:', {
+              query: requeteRecherche,
+              count: backendResults.length,
+              metadata: backendResults.slice(0, 5).map(m => ({
+                titre: m.titre,
+                departement: m.departement,
+                annee: m.annee,
+                motsCles: m.motsCles,
+                domaineEtude: m.domaineEtude,
+                etiquettes: m.etiquettes,
+                formation: m.formation
+              }))
+            });
+            
+            // Enregistrer la recherche dans l'historique
+            console.log('💾 Enregistrement de la recherche dans l\'historique...');
+            try {
+              await searchHistoryService.saveSearch(requeteRecherche, backendResults.length, 'gemini');
+              console.log('✅ Recherche enregistrée avec succès');
+            } catch (error) {
+              console.error('❌ Erreur lors de l\'enregistrement:', error);
+            }
+          } else {
+            // Fallback sur recherche locale si aucun résultat backend
+            console.log('⚠️ Aucun résultat Gemini, utilisation de la recherche locale');
+            const searchResults = fuzzyVectorSearch(
+              requeteRecherche,
+              resultat,
+              ['motsCles', 'domaineEtude', 'departement', 'annee', 'resume', 'etiquettes', 'formation', 'titre', 'auteurs', 'description'],
+              {
+                motsCles: 12,       // Poids maximum pour les mots-clés
+                domaineEtude: 11,   // Très élevé pour le domaine d'étude
+                departement: 10,    // Élevé pour le département
+                annee: 9,           // Très élevé pour l'année
+                resume: 8,          // Élevé pour le résumé
+                etiquettes: 7,      // Élevé pour les tags/thématiques
+                formation: 6,       // Moyen pour la formation
+                auteurs: 5,         // Moyen pour les auteurs
+                titre: 4,           // Plus faible pour le titre
+                description: 3      // Faible pour la description
+              }
+            );
+            resultat = searchResults.map(result => result.item);
+            
+            // Logger les métadonnées des résultats
+            console.log('📊 Résultats de recherche locale:', {
+              query: requeteRecherche,
+              count: resultat.length,
+              metadata: resultat.slice(0, 5).map(m => ({
+                titre: m.titre,
+                departement: m.departement,
+                annee: m.annee,
+                motsCles: m.motsCles,
+                domaineEtude: m.domaineEtude,
+                etiquettes: m.etiquettes,
+                formation: m.formation
+              }))
+            });
+            
+            // Enregistrer la recherche locale
+            console.log('💾 Enregistrement de la recherche locale...');
+            try {
+              await searchHistoryService.saveSearch(requeteRecherche, resultat.length, 'local');
+              console.log('✅ Recherche locale enregistrée');
+            } catch (error) {
+              console.error('❌ Erreur lors de l\'enregistrement local:', error);
+            }
+          }
+        } catch (error) {
+          // En cas d'erreur backend, utiliser la recherche locale
+          console.warn('❌ Erreur recherche Gemini, fallback sur recherche locale:', error);
+          const searchResults = fuzzyVectorSearch(
+            requeteRecherche,
+            resultat,
+            ['motsCles', 'domaineEtude', 'departement', 'annee', 'resume', 'etiquettes', 'formation', 'titre', 'auteurs', 'description'],
+            {
+              motsCles: 12,       // Mots-clés prioritaires
+              domaineEtude: 11,
+              departement: 10,
+              annee: 9,
+              resume: 8,
+              etiquettes: 7,
+              formation: 6,
+              auteurs: 5,
+              titre: 4,
+              description: 3
+            }
+          );
+          resultat = searchResults.map(result => result.item);
+          
+          // Logger les métadonnées du fallback
+          console.log('📊 Résultats fallback:', {
+            query: requeteRecherche,
+            count: resultat.length,
+            metadata: resultat.slice(0, 5).map(m => ({
+              titre: m.titre,
+              departement: m.departement,
+              annee: m.annee,
+              etiquettes: m.etiquettes
+            }))
+          });
+        } finally {
+          setIsSearching(false);
         }
-      );
+      }
 
-      // Extraire les mémoires avec un score > 0 (pertinents)
-      resultat = searchResults.map(result => result.item);
-    }
+      // Filtrer par département
+      if (departementSelectionne) {
+        resultat = resultat.filter(memoire =>
+          memoire.departement === departementSelectionne
+        );
+      }
 
-    // Filtrer par département
-    if (departementSelectionne) {
-      resultat = resultat.filter(memoire =>
-        memoire.departement === departementSelectionne
-      );
-    }
+      // Filtrer par année
+      if (anneeSelectionnee) {
+        resultat = resultat.filter(memoire =>
+          memoire.annee === anneeSelectionnee
+        );
+      }
 
-    // Filtrer par année
-    if (anneeSelectionnee) {
-      resultat = resultat.filter(memoire =>
-        memoire.annee === anneeSelectionnee
-      );
-    }
+      // Filtrer par étiquette
+      if (etiquetteSelectionnee) {
+        resultat = resultat.filter(memoire =>
+          memoire.etiquettes.includes(etiquetteSelectionnee)
+        );
+      }
 
-    // Filtrer par étiquette
-    if (etiquetteSelectionnee) {
-      resultat = resultat.filter(memoire =>
-        memoire.etiquettes.includes(etiquetteSelectionnee)
-      );
-    }
+      // Si pas de recherche textuelle, trier par année académique (les plus récents en premier)
+      if (!requeteRecherche) {
+        resultat.sort((a, b) => b.annee.localeCompare(a.annee));
+      }
+      // Sinon, les résultats sont déjà triés par pertinence
 
-    // Si pas de recherche textuelle, trier par année académique (les plus récents en premier)
-    if (!requeteRecherche) {
-      resultat.sort((a, b) => b.annee.localeCompare(a.annee));
-    }
-    // Sinon, les résultats sont déjà triés par pertinence grâce à fuzzyVectorSearch
+      setMemoiresFiltres(resultat);
+      // Réinitialiser à la première page lors d'un changement de filtre
+      setPageCourante(1);
+    };
 
-    setMemoiresFiltres(resultat);
-    // Réinitialiser à la première page lors d'un changement de filtre
-    setPageCourante(1);
+    performSearch();
   }, [requeteRecherche, departementSelectionne, anneeSelectionnee, etiquetteSelectionnee, memoires]);
 
-  const gererClicMemoire = (memoire: Memoire) => {
+  const gererClicMemoire = async (memoire: Memoire) => {
+    // Enregistrer la consultation
+    await documentConsultationService.recordConsultation(
+      memoire.id,
+      'memoire',
+      {
+        departement: memoire.departement,
+        annee: memoire.annee,
+        etiquettes: memoire.etiquettes,
+        formation: memoire.formation,
+        titre: memoire.titre
+      }
+    );
+    
     setMemoireSelectionne(memoire);
     setVueDetaillee(true);
     window.scrollTo(0, 0);
@@ -148,10 +298,21 @@ const Memoires = () => {
   };
 
   const reinitialiserFiltres = () => {
+    setSearchInput("");
     setRequeteRecherche("");
     setDepartementSelectionne("");
     setAnneeSelectionnee("");
     setEtiquetteSelectionnee("");
+  };
+
+  const lancerRecherche = () => {
+    setRequeteRecherche(searchInput);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      lancerRecherche();
+    }
   };
 
   const changerPage = (numeroPage: number) => {
@@ -329,23 +490,41 @@ const Memoires = () => {
                   </motion.p>
 
                   <motion.div
-                    className="bg-white/10 backdrop-blur-lg p-1.5 rounded-2xl shadow-2xl max-w-2xl mx-auto"
+                    className="bg-white/10 backdrop-blur-lg p-1.5 rounded-2xl shadow-2xl max-w-3xl mx-auto"
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.7, delay: 0.5 }}
                     whileHover={{ scale: 1.02 }}
                   >
-                    <div className="bg-white rounded-xl flex items-center overflow-hidden">
-                      <div className="bg-primary-50 p-4">
+                    <div className="bg-white rounded-xl flex items-stretch overflow-hidden">
+                      <div className="bg-primary-50 p-4 flex items-center">
                         <span className="material-icons text-primary">search</span>
                       </div>
                       <input
                         type="text"
                         placeholder="Rechercher par titre, auteur, mot-clé..."
-                        className="w-full py-4 px-5 outline-none bg-transparent text-navy-700"
-                        value={requeteRecherche}
-                        onChange={(e) => setRequeteRecherche(e.target.value)}
+                        className="flex-1 py-4 px-5 outline-none bg-transparent text-navy-700 min-w-0"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyPress={handleKeyPress}
                       />
+                      <button
+                        onClick={lancerRecherche}
+                        disabled={isSearching}
+                        className="bg-primary hover:bg-primary-700 text-white px-8 py-4 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                      >
+                        {isSearching ? (
+                          <>
+                            <span className="material-icons animate-spin text-lg">refresh</span>
+                            <span className="hidden sm:inline">Recherche...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="material-icons text-lg">search</span>
+                            <span className="hidden sm:inline">Rechercher</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </motion.div>
 
@@ -520,13 +699,17 @@ const Memoires = () => {
                 <div className="md:col-span-3 space-y-6">
                   <AnimatePresence>
                     {memoiresCourants.length > 0 ? (
-                      memoiresCourants.map(memoire => (
-                        <CarteMemoire
-                          key={memoire.id}
-                          memoire={memoire}
-                          onClick={gererClicMemoire}
-                        />
-                      ))
+                      memoiresCourants.map(memoire => {
+                        const score = documentConsultationService.calculateSimilarityScore(memoire, frequentMetadata);
+                        return (
+                          <CarteMemoire
+                            key={memoire.id}
+                            memoire={memoire}
+                            onClick={gererClicMemoire}
+                            isRecommended={score > 0 && !requeteRecherche}
+                          />
+                        );
+                      })
                     ) : (
                       <motion.div
                         className="bg-white rounded-xl shadow-lg p-8 text-center"

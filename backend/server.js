@@ -75,6 +75,25 @@ const chatbotRoutes = require('./routes/chatbot.routes');
 app.use('/api/chatbot', chatbotRoutes);
 
 // ============================================================================
+// ROUTES MEMOIRES
+// ============================================================================
+const memoireRoutes = require('./routes/memoire.routes');
+app.use('/api/memoires', memoireRoutes);
+
+// ============================================================================
+// ROUTES SEARCH HISTORY
+// ============================================================================
+const searchHistoryRoutes = require('./routes/searchHistory.routes');
+app.use('/api/search-history', searchHistoryRoutes);
+
+// ============================================================================
+// ROUTES DOCUMENT CONSULTATIONS
+// ============================================================================
+const documentConsultationRoutes = require('./routes/documentConsultation.routes');
+app.use('/api/consultations', documentConsultationRoutes);
+
+
+// ============================================================================
 // CONNEXION MONGODB
 // ============================================================================
 
